@@ -35,9 +35,76 @@ export default function Reports() {
     "Άλλο",
   ];
 
-  const handleExport = (format: "pdf" | "excel") => {
-    console.log(`Exporting report as ${format}`, filters);
-    alert(`Η αναφορά εξάγεται ως ${format.toUpperCase()}...`);
+  const handleExport = async (format: "pdf" | "excel") => {
+    if (format === "pdf") {
+      const { default: jsPDF } = await import("jspdf");
+      const pdf = new jsPDF();
+
+      pdf.setFontSize(18);
+      pdf.text("Αναφορά Διαχείρισης Πόρων", 14, 20);
+
+      pdf.setFontSize(10);
+      pdf.text(`Ημερομηνία: ${new Date().toLocaleDateString("el-GR")}`, 14, 30);
+
+      pdf.setFontSize(12);
+      pdf.text("Γενικά Στατιστικά:", 14, 45);
+      pdf.setFontSize(10);
+      pdf.text(`Συνολικοί Πόροι: ${reportData.totalResources}`, 14, 52);
+      pdf.text(`Ενεργοί Δανεισμοί: ${reportData.activeLoans}`, 14, 59);
+      pdf.text(`Εκκρεμείς Αιτήσεις: ${reportData.pendingRequests}`, 14, 66);
+      pdf.text(
+        `Ολοκληρωμένες Συναλλαγές: ${reportData.completedTransactions}`,
+        14,
+        73
+      );
+
+      pdf.setFontSize(12);
+      pdf.text("Πόροι ανά Κατηγορία:", 14, 87);
+
+      let yPos = 97;
+      reportData.resourcesByCategory.forEach((item) => {
+        const percentage = (item.count / reportData.totalResources) * 100;
+        pdf.setFontSize(10);
+        pdf.text(
+          `${item.category}: ${item.count} (${percentage.toFixed(1)}%)`,
+          14,
+          yPos
+        );
+        yPos += 7;
+      });
+
+      pdf.save("anafora-poron.pdf");
+    } else {
+      const XLSX = await import("xlsx");
+
+      const summaryData = [
+        { Μέτρηση: "Συνολικοί Πόροι", Αξία: reportData.totalResources },
+        { Μέτρηση: "Ενεργοί Δανεισμοί", Αξία: reportData.activeLoans },
+        { Μέτρηση: "Εκκρεμείς Αιτήσεις", Αξία: reportData.pendingRequests },
+        {
+          Μέτρηση: "Ολοκληρωμένες Συναλλαγές",
+          Αξία: reportData.completedTransactions,
+        },
+      ];
+
+      const categoryData = reportData.resourcesByCategory.map((item) => ({
+        Κατηγορία: item.category,
+        Πλήθος: item.count,
+        "Ποσοστό %": ((item.count / reportData.totalResources) * 100).toFixed(
+          1
+        ),
+      }));
+
+      const wb = XLSX.utils.book_new();
+
+      const ws1 = XLSX.utils.json_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(wb, ws1, "Γενικά Στατιστικά");
+
+      const ws2 = XLSX.utils.json_to_sheet(categoryData);
+      XLSX.utils.book_append_sheet(wb, ws2, "Ανά Κατηγορία");
+
+      XLSX.writeFile(wb, "anafora-poron.xlsx");
+    }
   };
 
   const handleGenerateReport = () => {
