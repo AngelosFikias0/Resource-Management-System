@@ -5,7 +5,7 @@ import {
   Package,
   TrendingUp,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 interface StatData {
   totalResources: number;
@@ -30,6 +30,39 @@ const stats: StatData = {
 export function StatisticsView() {
   const [showReport, setShowReport] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
+  const [completedTransactions, setCompletedTransactions] = useState(0);
+  const [totalExchangedValue, setTotalExchangedValue] = useState(0);
+
+  useEffect(() => {
+    try {
+      // Try to read persisted transactions first
+      const txRaw = localStorage.getItem("rms_transactions");
+      const resRaw = localStorage.getItem("rms_resources");
+
+      let completedCount = 0;
+      let totalValue = 0;
+
+      if (txRaw) {
+        const txs = JSON.parse(txRaw) as any[];
+        completedCount = txs.filter((t: any) => t.status === "completed").length;
+        totalValue = txs.reduce((acc: number, t: any) => acc + (Number(t.totalValue) || 0), 0);
+      } else {
+        // fallback: no transactions stored; compute total value from resources in-use
+        completedCount = 0;
+        if (resRaw) {
+          const resources = JSON.parse(resRaw) as any[];
+          totalValue = resources
+            .filter((r: any) => r.status === "in-use")
+            .reduce((acc: number, r: any) => acc + ((Number(r.purchasePrice) || 0) * (Number(r.quantity) || 0)), 0);
+        }
+      }
+
+      setCompletedTransactions(completedCount);
+      setTotalExchangedValue(totalValue);
+    } catch (err) {
+      console.error("Failed to compute statistics from localStorage", err);
+    }
+  }, []);
 
   const handleExport = async (format: "pdf" | "excel") => {
     if (format === "pdf") {
@@ -190,6 +223,25 @@ export function StatisticsView() {
                   </p>
                 </div>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="w-5 h-5 text-yellow-400" />
+                    <p className="text-gray-300 text-sm">Ολοκληρωμένες Συναλλαγές</p>
+                  </div>
+                  <p className="text-3xl text-yellow-400 font-bold">{completedTransactions}</p>
+                </div>
+
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                    <p className="text-gray-300 text-sm">Συνολική Αξία Ανταλλαγών</p>
+                  </div>
+                  <p className="text-3xl text-emerald-400 font-bold">
+                    {totalExchangedValue.toLocaleString("el-GR", { style: "currency", currency: "EUR" })}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Resources by Category */}
@@ -261,6 +313,24 @@ export function StatisticsView() {
               <p className="text-4xl bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
                 {stats.available}
               </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-2">
+                <FileText className="w-8 h-8 text-yellow-400" />
+                <p className="text-gray-300">Ολοκληρωμένες Συναλλαγές</p>
+              </div>
+              <p className="text-4xl bg-gradient-to-r from-yellow-400 to-yellow-500 bg-clip-text text-transparent">{completedTransactions}</p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-3 mb-2">
+                <TrendingUp className="w-8 h-8 text-emerald-400" />
+                <p className="text-gray-300">Συνολική Αξία Ανταλλαγών</p>
+              </div>
+              <p className="text-4xl bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">{totalExchangedValue.toLocaleString("el-GR", { style: "currency", currency: "EUR" })}</p>
             </div>
           </div>
 

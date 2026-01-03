@@ -21,5 +21,6 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["src", "."],
+  "exclude": ["vite.config.ts", "vite.config.*", "node_modules", "dist"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

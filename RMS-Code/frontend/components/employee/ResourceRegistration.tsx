@@ -25,6 +25,7 @@ interface FormData {
   category: string;
   description: string;
   unit: string;
+  purchasePrice?: string;
 }
 
 const INITIAL_FORM_STATE: FormData = {
@@ -33,6 +34,8 @@ const INITIAL_FORM_STATE: FormData = {
   category: "",
   description: "",
   unit: "",
+  purchasePrice: "",
+  
 };
 
 export function ResourceRegistration() {
@@ -67,6 +70,9 @@ export function ResourceRegistration() {
     if (!formData.unit) {
       return "Η μονάδα μέτρησης είναι υποχρεωτική";
     }
+    if (formData.purchasePrice && parseFloat(formData.purchasePrice) < 0) {
+      return "Η τιμή αγοράς δεν μπορεί να είναι αρνητική";
+    }
     return null;
   };
 
@@ -84,13 +90,35 @@ export function ResourceRegistration() {
     setError(null);
 
     try {
-      // TODO: Replace with actual API call
-      // await saveResource(formData);
+      // Build payload and persist to localStorage (temporary storage)
+      const payload = {
+        id: Date.now().toString(),
+        name: formData.name,
+        category: formData.category,
+        quantity: parseInt(formData.quantity) || 0,
+        unit: formData.unit,
+        description: formData.description,
+        purchasePrice: parseFloat(formData.purchasePrice || "0") || 0,
+        municipality: "Δικός Μου Δήμος",
+        status: "available",
+        createdAt: new Date().toISOString(),
+      };
 
       // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
-      console.log("Saving resource:", formData);
+      // Save to localStorage
+      const STORAGE_KEY = "rms_resources";
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        list.unshift(payload);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      } catch (err) {
+        console.error("Failed to save to localStorage", err);
+      }
+
+      console.log("Saving resource:", payload);
 
       // Success
       setShowSuccess(true);
@@ -269,6 +297,28 @@ export function ResourceRegistration() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Purchase Price */}
+            <div>
+              <label
+                htmlFor="purchasePrice"
+                className="block text-gray-300 mb-2 font-medium"
+              >
+                Τιμή Αγοράς (€)
+              </label>
+              <input
+                id="purchasePrice"
+                name="purchasePrice"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.purchasePrice}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="π.χ. 1500.00"
+              />
             </div>
           </div>
 

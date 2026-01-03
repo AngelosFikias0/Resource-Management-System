@@ -18,6 +18,7 @@ interface Resource {
   category: string;
   quantity: number;
   unit: string;
+  purchasePrice?: number;
   status: "available" | "in-use";
   municipality: string;
   createdAt?: string;
@@ -52,6 +53,7 @@ const MOCK_RESOURCES: Resource[] = [
     category: "Μηχανήματα",
     quantity: 2,
     unit: "Τεμάχια",
+    purchasePrice: 25000,
     status: "available",
     municipality: "Δήμος Αθηναίων",
   },
@@ -61,6 +63,7 @@ const MOCK_RESOURCES: Resource[] = [
     category: "Οχήματα",
     quantity: 5,
     unit: "Τεμάχια",
+    purchasePrice: 18000,
     status: "in-use",
     municipality: "Δήμος Αθηναίων",
   },
@@ -70,6 +73,7 @@ const MOCK_RESOURCES: Resource[] = [
     category: "Εξοπλισμός",
     quantity: 10,
     unit: "Τεμάχια",
+    purchasePrice: 450,
     status: "available",
     municipality: "Δήμος Αθηναίων",
   },
@@ -79,6 +83,7 @@ const MOCK_RESOURCES: Resource[] = [
     category: "Υλικά Κατασκευών",
     quantity: 500,
     unit: "Κιλά",
+    purchasePrice: 2.5,
     status: "available",
     municipality: "Δήμος Αθηναίων",
   },
@@ -88,6 +93,7 @@ const MOCK_RESOURCES: Resource[] = [
     category: "Μηχανήματα",
     quantity: 3,
     unit: "Τεμάχια",
+    purchasePrice: 7500,
     status: "in-use",
     municipality: "Δήμος Αθηναίων",
   },
@@ -97,6 +103,21 @@ export function MyResources() {
   const [resources, setResources] = useState<Resource[]>(MOCK_RESOURCES);
   const [isLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load persisted resources from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("rms_resources");
+      if (raw) {
+        const data = JSON.parse(raw) as Resource[];
+        if (Array.isArray(data) && data.length > 0) {
+          setResources(data);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load resources from localStorage", err);
+    }
+  }, []);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
@@ -156,7 +177,12 @@ export function MyResources() {
     if (editFormData) {
       setEditFormData({
         ...editFormData,
-        [name]: name === "quantity" ? parseInt(value) || 0 : value,
+        [name]:
+          name === "quantity"
+            ? parseInt(value) || 0
+            : name === "purchasePrice"
+            ? parseFloat(value) || 0
+            : value,
       });
       if (editError) setEditError(null);
     }
@@ -170,6 +196,8 @@ export function MyResources() {
       return "Η ποσότητα πρέπει να είναι τουλάχιστον 1";
     if (!editFormData.unit) return "Η μονάδα είναι υποχρεωτική";
     if (!editFormData.status) return "Η κατάσταση είναι υποχρεωτική";
+    if (typeof editFormData.purchasePrice === "number" && editFormData.purchasePrice < 0)
+      return "Η τιμή αγοράς δεν μπορεί να είναι αρνητική";
     return null;
   };
 
@@ -188,9 +216,15 @@ export function MyResources() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 600));
 
-      setResources((prev) =>
-        prev.map((r) => (r.id === editFormData.id ? editFormData : r))
+      const updated = resources.map((r) =>
+        r.id === editFormData.id ? editFormData : r
       );
+      setResources(updated);
+      try {
+        localStorage.setItem("rms_resources", JSON.stringify(updated));
+      } catch (err) {
+        console.error("Failed to persist edited resources", err);
+      }
 
       handleCancelEdit();
     } catch (err) {
@@ -206,7 +240,13 @@ export function MyResources() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      setResources((prev) => prev.filter((r) => r.id !== resourceId));
+      const updated = resources.filter((r) => r.id !== resourceId);
+      setResources(updated);
+      try {
+        localStorage.setItem("rms_resources", JSON.stringify(updated));
+      } catch (err) {
+        console.error("Failed to persist resources after delete", err);
+      }
       setDeleteConfirm(null);
     } catch (err) {
       setError("Αποτυχία διαγραφής πόρου. Παρακαλώ δοκιμάστε ξανά.");
@@ -406,6 +446,17 @@ export function MyResources() {
                     <p className="text-white font-medium truncate">
                       {resource.municipality}
                     </p>
+                    {typeof resource.purchasePrice === "number" && (
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-400 mb-1">Τιμή Αγοράς</p>
+                        <p className="text-white font-medium">
+                          {resource.purchasePrice.toLocaleString("el-GR", {
+                            style: "currency",
+                            currency: "EUR",
+                          })}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

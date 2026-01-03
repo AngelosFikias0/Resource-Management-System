@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react@0.487.0";
-import { DayPicker } from "react-day-picker@8.10.1";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DayPicker } from "react-day-picker";
 
 import { cn } from "./utils";
 import { buttonVariants } from "./button";
@@ -60,13 +60,14 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
+        // react-day-picker types vary between versions; use `any` here to avoid type mismatch
+        IconLeft: (({ className, ...props }: any) => (
           <ChevronLeft className={cn("size-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
+        )) as any,
+        IconRight: (({ className, ...props }: any) => (
           <ChevronRight className={cn("size-4", className)} {...props} />
-        ),
-      }}
+        )) as any,
+      } as any}
       {...props}
     />
   );
