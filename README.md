@@ -1,18 +1,5 @@
 # EfficienCity Resource Management System
 
-<div align="center">
-
-**A centralized platform for municipal resource management and inter-municipality collaboration.**
-
-[![GitHub Stars](https://img.shields.io/github/stars/AngelosFikias0/Resource_Management_System?style=for-the-badge&logo=github&color=yellow)](https://github.com/AngelosFikias0/Resource_Management_System/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/AngelosFikias0/Resource_Management_System?style=for-the-badge&logo=github&color=orange)](https://github.com/AngelosFikias0/Resource_Management_System/network/members)
-[![Issues](https://img.shields.io/github/issues/AngelosFikias0/Resource_Management_System?style=for-the-badge&logo=github&color=red)](https://github.com/AngelosFikias0/Resource_Management_System/issues)
-[![License](https://img.shields.io/github/license/AngelosFikias0/Resource_Management_System?style=for-the-badge&color=blue)](LICENSE)
-
-[Overview](#-overview) • [Features](#-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [Team](#-team)
-
-</div>
-
 ---
 
 ## 📖 Overview
