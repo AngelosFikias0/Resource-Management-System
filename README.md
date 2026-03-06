@@ -6,6 +6,10 @@
 
 **EfficienCity RMS** is a full-stack ecosystem designed to modernize how municipalities register, allocate, share, and audit public resources. By replacing fragmented, manual processes with a single source of truth, the platform improves asset utilization, reduces operational costs, and fosters transparency between local authorities and citizens.
 
+> ⚠️ Note  
+> EfficienCity RMS is an academic analysis and design project.  
+> The repository includes system architecture and a minimal frontend MVP, but does not include a full backend implementation.
+
 ### Core Outcomes
 
 - 👁️ **Real-time Visibility** – Instant tracking of municipal assets and availability
