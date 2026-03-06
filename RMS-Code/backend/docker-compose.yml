@@ -4,8 +4,8 @@ services:
     image: postgres:15
     container_name: rms_db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ADMIN
+      POSTGRES_PASSWORD: PASSWORD
       POSTGRES_DB: rms_db
     ports:
       - "5432:5432"
